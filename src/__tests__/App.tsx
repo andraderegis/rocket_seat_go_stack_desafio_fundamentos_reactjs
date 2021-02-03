@@ -108,7 +108,7 @@ describe('Dashboard', () => {
   });
 
   it('should be able to list the transactions', async () => {
-    const { getByText, getAllByText } = render(<App />);
+    const { getByText } = render(<App />);
 
     apiMock.onGet('transactions').reply(200, {
       transactions: [
@@ -176,11 +176,11 @@ describe('Dashboard', () => {
     expect(getByText('Sell')).toBeTruthy();
 
     expect(getByText('Website Hosting')).toBeTruthy();
-    expect(getAllByText('R$ 50,00')).toBeTruthy();
+    expect(getByText('- R$ 50,00')).toBeTruthy();
     expect(getByText('Hosting')).toBeTruthy();
   });
 
-  xit('should be able to navigate to the import page', async () => {
+  it('should be able to navigate to the import page', async () => {
     const { getByText } = render(<App />);
 
     await actWait(500);
