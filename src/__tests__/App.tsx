@@ -205,6 +205,7 @@ describe('Import', () => {
 
     const file = new File(
       [
+        // eslint-disable-next-line no-multi-str
         'title, type, value, category\
           Loan, income, 1500, Others\
           Website Hosting, outcome, 50, Others\

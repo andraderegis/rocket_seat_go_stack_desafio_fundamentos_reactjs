@@ -14,18 +14,7 @@ import formatValue from '../../utils/formatValue';
 import { Container, CardContainer, Card, TableContainer } from './styles';
 
 interface TransactionsResponse {
-  transactions: [
-    {
-      id: string;
-      title: string;
-      value: number;
-      type: 'income' | 'outcome';
-      category: {
-        title: string;
-      };
-      created_at: Date;
-    },
-  ];
+  transactions: Transaction[];
   balance: Balance;
 }
 interface Transaction {
@@ -40,31 +29,31 @@ interface Transaction {
 }
 
 interface Balance {
-  income: number;
-  outcome: number;
-  total: number;
+  income: string;
+  outcome: string;
+  total: string;
 }
 
 const Dashboard: React.FC = () => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [balance, setBalance] = useState<Balance>({} as Balance);
 
-  function parseTransactionsReponse(
-    transactionsReponse: TransactionsResponse,
-  ): Transaction[] {
-    return transactionsReponse.transactions.map(transaction => {
-      const created_at = new Date(transaction.created_at);
-
+  function parseTransactions(transactionsData: Transaction[]): Transaction[] {
+    return transactionsData.map(transaction => {
       return {
-        id: transaction.id,
-        title: transaction.title,
+        ...transaction,
         formattedValue: formatValue(transaction.value),
-        formattedDate: format(created_at, 'dd/MM/yyyy'),
-        type: transaction.type,
-        category: transaction.category,
-        created_at,
+        formattedDate: format(new Date(transaction.created_at), 'dd/MM/yyyy'),
       };
-    }) as Transaction[];
+    });
+  }
+
+  function parseBalance(balanceData: Balance): Balance {
+    return {
+      income: formatValue(parseFloat(balanceData.income)),
+      outcome: formatValue(parseFloat(balanceData.outcome)),
+      total: formatValue(parseFloat(balanceData.total)),
+    };
   }
 
   useEffect(() => {
@@ -77,8 +66,10 @@ const Dashboard: React.FC = () => {
         return;
       }
 
-      setTransactions(parseTransactionsReponse(transactionsResponse.data));
-      setBalance(transactionsResponse.data.balance);
+      setTransactions(
+        parseTransactions(transactionsResponse.data.transactions),
+      );
+      setBalance(parseBalance(transactionsResponse.data.balance));
     }
     loadTransactions();
   }, []);
@@ -93,23 +84,21 @@ const Dashboard: React.FC = () => {
               <p>Entradas</p>
               <img src={income} alt="Income" />
             </header>
-            <h1 data-testid="balance-income">{formatValue(balance.income)}</h1>
+            <h1 data-testid="balance-income">{balance.income}</h1>
           </Card>
           <Card>
             <header>
               <p>Saídas</p>
               <img src={outcome} alt="Outcome" />
             </header>
-            <h1 data-testid="balance-outcome">
-              {formatValue(balance.outcome)}
-            </h1>
+            <h1 data-testid="balance-outcome">{balance.outcome}</h1>
           </Card>
           <Card total>
             <header>
               <p>Total</p>
               <img src={total} alt="Total" />
             </header>
-            <h1 data-testid="balance-total">{formatValue(balance.total)}</h1>
+            <h1 data-testid="balance-total">{balance.total}</h1>
           </Card>
         </CardContainer>
 
@@ -130,9 +119,8 @@ const Dashboard: React.FC = () => {
                   <tr key={`${transaction.id}`}>
                     <td className="title">{transaction.title}</td>
                     <td className={transaction.type}>
-                      {transaction.type === 'outcome'
-                        ? `- ${transaction.formattedValue}`
-                        : transaction.formattedValue}
+                      {transaction.type === 'outcome' && '- '}
+                      {transaction.formattedValue}
                     </td>
                     <td>{transaction.category.title}</td>
                     <td>{transaction.formattedDate}</td>
